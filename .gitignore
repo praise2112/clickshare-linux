@@ -12,3 +12,6 @@ ClickShare_Setup.exe
 
 # logs written by the app when started from this directory
 *.log
+
+# Python bytecode
+__pycache__/

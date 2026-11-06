@@ -1,2 +1,4 @@
 SUBSYSTEM=="usb", ATTR{idVendor}=="0600", TAG+="uaccess"
 KERNEL=="hidraw*", ATTRS{idVendor}=="0600", TAG+="uaccess"
+# Starts the user's clickshare.service when a Button is plugged in; the service stops when it is removed.
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="0600", ATTR{idProduct}=="0070|009f|00ce|0185", TAG+="systemd", ENV{SYSTEMD_ALIAS}+="/dev/clickshare-button", ENV{SYSTEMD_USER_WANTS}+="clickshare.service"

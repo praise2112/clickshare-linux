@@ -4,13 +4,28 @@
 #
 # Usage: sh clickshare.sh
 #
-# Environment:
+# Settings, from the environment or ~/.config/clickshare-linux/env (VAR=value lines):
 #   CLICKSHARE_PREFIX   Wine prefix to use (default: ~/.wine-clickshare)
 #   CLICKSHARE_NO_AUDIO set to 1 to leave the audio output unchanged
+#   CLICKSHARE_MAX_FPS  cap on frames handed to the app per second (default 0: no cap)
+#   WINEDLLOVERRIDES    extra DLL overrides, e.g. d3d11,dxgi=n for DXVK
 DIR=$(cd "$(dirname "$0")" && pwd)
+
+. "$DIR/scripts/env.sh"
+if [ -z "$WINESERVER" ]; then
+    echo "Wine is not installed. See README.md, Installation." >&2
+    exit 1
+fi
+# Started by systemd before the desktop exported its display (Button plugged in at login):
+# exit status 75 makes clickshare.service try again a few seconds later.
+if [ -z "$WAYLAND_DISPLAY$DISPLAY" ]; then
+    echo "No graphical session yet." >&2
+    exit 75
+fi
 export WINEPREFIX=${CLICKSHARE_PREFIX:-$HOME/.wine-clickshare}
-export WINEDLLOVERRIDES="mscoree,mshtml="
+export WINEDLLOVERRIDES="mscoree,mshtml=${WINEDLLOVERRIDES:+;$WINEDLLOVERRIDES}"
 export WINEDEBUG=${WINEDEBUG:--all}
+export CLICKSHARE_MAX_FPS=${CLICKSHARE_MAX_FPS:-0}
 
 LOCALAPPDATA=$(winepath -u "$(wine cmd /c echo %LOCALAPPDATA% 2>/dev/null | tr -d '\r')")
 APP=$(ls -d "$LOCALAPPDATA"/ClickShare/app-*/clickshare_native.exe 2>/dev/null | sort -V | tail -n 1)
@@ -39,5 +54,18 @@ if [ "${CLICKSHARE_NO_AUDIO:-0}" != 1 ] && command -v pactl >/dev/null 2>&1; the
     fi
 fi
 
-wineserver -k 2>/dev/null
-exec wine "$DIR/build/inject.exe" "$(winepath -w "$APP")" "$(winepath -w "$DIR/build/csdup.dll")" 3000
+"$WINESERVER" -k 2>/dev/null
+
+# Under Wayland, Wine cannot read the screen; the helper captures it through the portal.
+if [ "$XDG_SESSION_TYPE" = wayland ]; then
+    FRAMES="$XDG_RUNTIME_DIR/clickshare-frames"
+    /usr/bin/python3 -I "$DIR/helper/clickshare-capture.py" "$FRAMES" &
+    HELPER=$!
+    trap 'kill $HELPER 2>/dev/null' EXIT INT TERM
+    CLICKSHARE_FRAMES=$(winepath -w "$FRAMES")
+    export CLICKSHARE_FRAMES
+fi
+
+wine "$DIR/build/inject.exe" "$(winepath -w "$APP")" "$(winepath -w "$DIR/build/csdup.dll")" 3000
+# inject.exe returns once the shim is loaded; wait for the app itself to exit.
+"$WINESERVER" -w

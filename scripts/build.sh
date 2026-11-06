@@ -21,6 +21,7 @@ if command -v i686-w64-mingw32-gcc >/dev/null 2>&1; then
     i686-w64-mingw32-gcc -O2 -shared -o "$OUT/csdup.dll" "$SRC/csdup.c" \
         -ld3d11 -ldxgi -lgdi32 -luser32 -static-libgcc
     i686-w64-mingw32-gcc -O2 -municode -o "$OUT/inject.exe" "$SRC/inject.c" -static-libgcc
+    i686-w64-mingw32-gcc -O2 -o "$OUT/dupltest.exe" "$SRC/dupltest.c" -ld3d11 -ldxgi -static-libgcc
 else
     ZIG="$DIR/.toolchain/zig-x86_64-linux-$ZIG_VERSION/zig"
     if [ ! -x "$ZIG" ]; then
@@ -44,6 +45,7 @@ else
     "$ZIG" cc -target x86-windows-gnu -O2 -shared -o "$OUT/csdup.dll" "$SRC/csdup.c" \
         -ld3d11 -ldxgi -lgdi32 -luser32
     "$ZIG" cc -target x86-windows-gnu -O2 -municode -o "$OUT/inject.exe" "$SRC/inject.c"
+    "$ZIG" cc -target x86-windows-gnu -O2 -o "$OUT/dupltest.exe" "$SRC/dupltest.c" -ld3d11 -ldxgi
     rm -f "$OUT"/*.pdb "$OUT"/*.lib
 fi
 
