@@ -34,7 +34,7 @@ try:
     from gi.repository import GLibUnix  # noqa: E402
 
     unix_signal_add = GLibUnix.signal_add
-except ValueError:  # GLib older than 2.80
+except (ValueError, AttributeError):  # GLib older than 2.80, or PyGObject without signal_add
     unix_signal_add = GLib.unix_signal_add
 
 PORTAL = "org.freedesktop.portal.Desktop"

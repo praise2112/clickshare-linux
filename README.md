@@ -23,6 +23,7 @@ Tested setups:
 |---|---|---|---|---|---|
 | Ubuntu 26.04 | GNOME 50, Wayland | 10.0 (Ubuntu package) | 4.51.1 | Gen4 `0600:00ce` | CX-30 |
 | Pop!_OS 22.04 | GNOME, X11 | 11.0 (WineHQ) | 4.36.0 | `0600:00ce` | not recorded |
+| Pop!_OS 24.04 | COSMIC, Wayland | 11.0 (WineHQ) | 4.51.1 | `0600:00ce` | CX-30 |
 
 > **Disclaimer:** This is an unofficial community project. Barco does not
 > endorse or support it. "ClickShare" and "Barco" are trademarks of Barco N.V.
